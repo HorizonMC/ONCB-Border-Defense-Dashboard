@@ -15,6 +15,10 @@ import {
   INITIAL_KPI, WEATHER,
   type Sensor, type Drone, type Alert, type KPIData, type CCTV,
 } from "@/data/mockData";
+import {
+  soundDetect, soundAlert, soundDispatch, soundIdentify,
+  soundEscalate, soundReturning, soundComplete,
+} from "@/lib/sounds";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -71,6 +75,7 @@ export default function DashboardPage() {
     setDispatchLine(null);
     setSimPhase("complete");
     setStatusMessage("MR-04 กลับถึงฐานขุนยาม — ระบบตอบสนองสำเร็จ เวลาตอบสนอง 2.8 นาที");
+    soundComplete();
     // คืนสถานะโดรนกลับเป็น flying ที่ฐานเดิม
     setDrones((prev) =>
       prev.map((d) =>
@@ -99,12 +104,14 @@ export default function DashboardPage() {
 
     // 2s — AI ตรวจพบบุคคล + เปิดวิดีโอ IR
     const t1 = setTimeout(() => {
+      soundIdentify();
       setStatusMessage("AI ตรวจพบบุคคล 2 คน — ความมั่นใจ 96% — กำลังบันทึกหลักฐาน...");
       setShowDetection(true);
     }, 2000);
 
     // 5s — Escalate
     const t2 = setTimeout(() => {
+      soundEscalate();
       setSimPhase("escalate");
       setStatusMessage("ยกระดับเป็นวิกฤต — แจ้งส่วนกลางแล้ว");
       setAlerts((prev) =>
@@ -116,6 +123,7 @@ export default function DashboardPage() {
 
     // 14s — วิดีโอจบ (12.4s) → โดรนเริ่มบินกลับฐาน
     const t3 = setTimeout(() => {
+      soundReturning();
       setSimPhase("returning");
       setStatusMessage("MR-04 สำรวจเสร็จ — กำลังบินกลับฐานขุนยาม...");
       setShowDetection(false);
@@ -145,6 +153,7 @@ export default function DashboardPage() {
     // Phase 1: Detect (0s) — กล้อง C10 ห้วยต้นนุ่น + sensor S09 แดง พร้อมกัน
     setSimPhase("detect");
     setStatusMessage("เซ็นเซอร์ ขุนยาม ตรวจพบสัญญาณผิดปกติ!");
+    soundDetect();
     // S09 sensor แดง (เซ็นเซอร์ตรวจพบสัญญาณ)
     setSensors((prev) =>
       prev.map((s) => (s.id === "S09" ? { ...s, status: "alert" as const } : s))
@@ -160,7 +169,7 @@ export default function DashboardPage() {
       setStatusMessage("แจ้งเตือน: ตรวจพบการเคลื่อนไหวผิดปกติ ชายแดนขุนยาม — ส่ง MR-04 สำรวจ");
       const simAlert: Alert = { ...SIMULATION_ALERT, time: now() };
       setAlerts((prev) => [...prev, simAlert]);
-      try { new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJOamJSGe3Z9jZaUkoeDfX6Ij5GQioR/f4SLj4+NiIWBgYWJjIyKh4WDg4WIi4uKiIaEhIWHiYqJiIeGhYaHiImIiIeGhoaHiIiIh4eGh4eHiIeHh4eHh4eHh4eHh4eHh4eHhw==").play(); } catch {}
+      soundAlert();
       // Zoom out เล็กน้อยเพื่อเห็นทั้งฐานและจุดเกิดเหตุ
       if (mapRef.current) {
         mapRef.current.flyTo({ center: [97.88, 18.83], zoom: 12, duration: 1000 });
@@ -172,6 +181,7 @@ export default function DashboardPage() {
       setSimPhase("dispatch");
       setStatusMessage("MR-04 เริ่มบินจากฐานขุนยาม → จุด sensor ที่ตรวจพบสัญญาณ...");
 
+      soundDispatch();
       setDrones((prev) =>
         prev.map((d) =>
           d.id === DISPATCH_DRONE_ID ? { ...d, status: "dispatched" as const } : d

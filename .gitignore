@@ -9,6 +9,8 @@ Thumbs.db
 # Build
 dashboard/.next/
 dashboard/node_modules/
+dashboard/next-env.d.ts
+dashboard/tsconfig.tsbuildinfo
 
 # Video frames (generated)
 dashboard/public/videos/f*.jpg
